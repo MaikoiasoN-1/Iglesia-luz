@@ -41,7 +41,7 @@
             padding-top: env(safe-area-inset-top, 0px);
             padding-bottom: env(safe-area-inset-bottom, 20px); 
             justify-content: flex-start;
-            overflow-y: auto; /* Permite desplazamiento si la pantalla es muy pequeña */
+            overflow-y: auto; 
         }
 
         #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
@@ -55,37 +55,36 @@
             padding: 0 25px; 
             margin-top: -5px; 
             flex-shrink: 0;
-            z-index: 10;
+            z-index: 50; 
+            position: relative;
         }
         
         .video-logo-wrapper { 
-            width: 80px; 
-            height: 80px; 
-            overflow: hidden; 
+            width: 70px; 
+            height: 70px; 
+            border-radius: 16px; 
             display: flex; 
             justify-content: center; 
             align-items: center;
             position: relative;
-            background-color: var(--yape-dark-top) !important;
-            transform: translateX(-10px); 
+            overflow: hidden;
+            
+            /* Borde difuminado de 3px al filo */
+            box-shadow: 0 0 8px 3px rgba(80, 29, 121, 0.9);
+            
+            /* --- CONTROLES DE POSICIÓN --- */
+            transform: translateX(5px); 
+            margin-top: 80px; 
+            /* ---------------------------- */
+            
+            z-index: 51;
         }
 
-        .video-logo-wrapper::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            pointer-events: none;
-            z-index: 6;
-            background: 
-                linear-gradient(to right, var(--yape-dark-top) 0%, transparent 15%, transparent 85%, var(--yape-dark-top) 100%),
-                linear-gradient(to bottom, var(--yape-dark-top) 0%, transparent 15%, transparent 85%, var(--yape-dark-top) 100%);
-        }
-        
         #top-video { 
             width: 100%; 
             height: 100%; 
-            object-fit: contain; 
-            background-color: var(--yape-dark-top) !important;
+            object-fit: cover; 
+            border-radius: 16px;
             opacity: 0;
             transition: opacity 0.3s ease-in;
         }
@@ -99,7 +98,10 @@
             justify-content: center; 
             align-items: center; 
             cursor: pointer; 
-            z-index: 40; 
+            z-index: 60; 
+            position: absolute;
+            right: 20px;
+            top: 20px;
         }
         .btn-close-circle svg { 
             stroke: white; 
@@ -108,18 +110,20 @@
             stroke-width: 3;
         }
 
-        /* BANNER DINÁMICO DE BILLETES (PARTE SUPERIOR) */
         .top-banner-img {
-            width: 90%;
-            margin: 0 auto 12px;
+            width: 100%;           
+            margin-top: -75px;     
+            margin-bottom: -10px;    
             display: block;
-            border-radius: 14px;
-            object-fit: cover;
+            object-fit: contain;   
+            border-radius: 0;      
             flex-shrink: 0;
             z-index: 25;
+            /* Difuminado superior e inferior para eliminar completamente la línea y fundir tonos */
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 80%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 80%, transparent 100%);
         }
 
-        /* TARJETA BLANCA PRINCIPAL (AL CENTRO DE LA PANTALLA) */
         .main-card { 
             width: 90%; 
             background: white; 
@@ -159,17 +163,7 @@
         .t-label { color: #444; font-size: 14px; }
         .t-value { color: var(--text-black); font-size: 14px; font-weight: 700; text-align: right; }
 
-        /* BANNER PUBLICITARIO (PARTE INFERIOR) */
-        .promo-img { 
-            width: 90%; 
-            max-height: 180px; 
-            object-fit: cover; 
-            border-radius: 15px;
-            margin: 15px auto 10px; 
-            display: none; 
-            flex-shrink: 0;
-            z-index: 20;
-        }
+        .promo-img { width: 90%; max-height: 180px; object-fit: cover; border-radius: 15px; margin: 15px auto 10px; display: none; flex-shrink: 0; z-index: 20; }
     </style>
 </head>
 <body onload="lanzarConfetti()">
@@ -188,10 +182,8 @@
         </div>
     </div>
 
-    <!-- IMAGEN SUPERIOR DINÁMICA DE BILLETES -->
-    <img id="top-banner-billete" src="" alt="" class="top-banner-img">
+    <img id="top-banner-billete" src="" alt="Banner Superior" class="top-banner-img">
 
-    <!-- TARJETA BLANCA AL CENTRO CON TODA LA INFORMACIÓN -->
     <div class="main-card">
         <div class="card-header-line">
             <h1 class="yapeaste-text">¡Yapeaste!</h1>
@@ -234,7 +226,6 @@
         </div>
     </div>
 
-    <!-- BANNER DINÁMICO PUBLICITARIO EN LA PARTE INFERIOR -->
     <img id="img-dinamica" src="" class="promo-img">
 </div>
 
@@ -247,18 +238,12 @@
         const colorMorado = '#742284';
         const colorVerde = '#00d1B2';
         const shapeConf = ['square'];
-        const fastDropConf = {
-            spread: 90, startVelocity: 85, gravity: 1.6, scalar: 2.2, shapes: shapeConf, ticks: 400, drift: 0.1
-        };
+        const fastDropConf = { spread: 90, startVelocity: 85, gravity: 1.6, scalar: 2.2, shapes: shapeConf, ticks: 400, drift: 0.1 };
         confetti({...fastDropConf, particleCount: 80, origin: { x: -0.1, y: -0.1 }, angle: -45, colors: [colorMorado]});
-        setTimeout(() => {
-            confetti({...fastDropConf, particleCount: 80, origin: { x: 1.1, y: -0.1 }, angle: -135, colors: [colorVerde]});
-        }, 60);
+        setTimeout(() => { confetti({...fastDropConf, particleCount: 80, origin: { x: 1.1, y: -0.1 }, angle: -135, colors: [colorVerde]}); }, 60);
         const bigFastDrop = {...fastDropConf, particleCount: 6, scalar: 9.0, gravity: 1.5};
         confetti({...bigFastDrop, origin: { x: -0.1, y: -0.1 }, angle: -40, colors: [colorMorado]});
-        setTimeout(() => {
-            confetti({...bigFastDrop, origin: { x: 1.1, y: -0.1 }, angle: -140, colors: [colorVerde]});
-        }, 60);
+        setTimeout(() => { confetti({...bigFastDrop, origin: { x: 1.1, y: -0.1 }, angle: -140, colors: [colorVerde]}); }, 60);
     }
 
     function elegirImagen() {
@@ -266,7 +251,6 @@
         const ahora = new Date().getTime();
         const unDia = 1 * 60 * 60 * 1000;
         let primerCarga = localStorage.getItem('yape_primer_carga');
-        
         if (!primerCarga || (ahora - parseInt(primerCarga) > unDia)) {
             img.src = "ba.jpg";
             localStorage.setItem('yape_primer_carga', ahora.toString());
@@ -277,44 +261,21 @@
         img.style.display = 'block';
     }
 
-    // LÓGICA DE SELECCIÓN DE IMAGEN SUPERIOR SEGÚN MONTO
     function actualizarBannerSuperior(monto) {
         const bannerImg = document.getElementById('top-banner-billete');
         const m = parseFloat(monto);
-
-        if (m >= 0 && m <= 19.99) {
-            bannerImg.src = "billete1.jpg";
-        } else if (m >= 20 && m <= 49.99) {
-            bannerImg.src = "billete2.jpg";
-        } else if (m >= 50 && m <= 99.99) {
-            bannerImg.src = "billete3.jpg";
-        } else if (m >= 100 && m <= 199.99) {
-            bannerImg.src = "billete4.jpg";
-        } else if (m >= 200) {
-            bannerImg.src = "billete5.jpg";
-        }
+        if (m >= 0 && m <= 19.99) bannerImg.src = "billete1.jpg";
+        else if (m >= 20 && m <= 49.99) bannerImg.src = "billete2.jpg";
+        else if (m >= 50 && m <= 99.99) bannerImg.src = "billete3.jpg";
+        else if (m >= 100 && m <= 199.99) bannerImg.src = "billete4.jpg";
+        else if (m >= 200) bannerImg.src = "billete5.jpg";
     }
 
-    // FUNCIÓN PARA ACTUALIZAR HISTORIAL Y RESTAR SALDO
     function actualizarHistorialYSaldo(nombre, monto, fecha, hora, op, tel, codigo) {
         let historial = JSON.parse(localStorage.getItem('yape_historial')) || [];
-        
         if(historial.some(m => m.op === op)) return;
-
-        historial.unshift({
-            titulo: nombre, 
-            monto: monto, 
-            fecha: fecha, 
-            hora: hora, 
-            op: op, 
-            telefono: tel, 
-            tipo: 'yape', 
-            codigoSeguridad: codigo, // SE AGREGA EL CÓDIGO AQUÍ
-            timestamp: new Date().getTime()
-        });
-
+        historial.unshift({ titulo: nombre, monto: monto, fecha: fecha, hora: hora, op: op, telefono: tel, tipo: 'yape', codigoSeguridad: codigo, timestamp: new Date().getTime() });
         localStorage.setItem('yape_historial', JSON.stringify(historial));
-
         let saldo = parseFloat(localStorage.getItem('yape_balance')) || 1000.00;
         localStorage.setItem('yape_balance', (saldo - parseFloat(monto)).toFixed(2));
     }
@@ -325,46 +286,33 @@
         const nombre = localStorage.getItem('yape_nombre');
         const telMask = localStorage.getItem('yape_telefono_mask');
         let montoDisp = "0.00";
-
         if (montoRaw) {
             const mNum = parseFloat(montoRaw);
             montoDisp = (mNum % 1 === 0) ? mNum.toString() : mNum.toFixed(2);
             document.getElementById('display-monto').innerText = montoDisp;
         }
-
-        // CARGAR EL BANNER DE BILLETE SEGÚN EL MONTO OBTENIDO
         actualizarBannerSuperior(montoRaw || 0);
-
         if (nombre) document.getElementById('display-nombre').innerText = nombre;
         if (telMask) document.getElementById('display-phone-mask').innerText = telMask;
-
-        // GENERAMOS EL CÓDIGO UNA SOLA VEZ AL CARGAR
         const cod1 = Math.floor(Math.random() * 10);
         const cod2 = Math.floor(Math.random() * 10);
         const cod3 = Math.floor(Math.random() * 10);
         const codigoFinal = [cod1, cod2, cod3];
-
         document.getElementById('code-1').innerText = cod1;
         document.getElementById('code-2').innerText = cod2;
         document.getElementById('code-3').innerText = cod3;
-
         const now = new Date();
         const months = ["ene.", "feb.", "mar.", "abr.", "may.", "jun.", "jul.", "ago.", "sep.", "oct.", "nov.", "dic."];
         const fStr = `${now.getDate().toString().padStart(2, '0')} ${months[now.getMonth()]} ${now.getFullYear()}`;
         document.getElementById('display-date').innerText = fStr;
-
         let hrs = now.getHours();
         const ampm = hrs >= 12 ? 'p. m.' : 'a. m.';
         hrs = hrs % 12 || 12;
         const hStr = `${hrs.toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${ampm}`;
         document.getElementById('display-time').innerText = hStr;
-
         const opStr = (Math.floor(Math.random() * 90000000) + 10000000).toString();
         document.getElementById('display-op').innerText = opStr;
-
-        // PASAMOS EL CODIGO FINAL A LA FUNCIÓN
         actualizarHistorialYSaldo(nombre, montoDisp, fStr, hStr, opStr, telMask, codigoFinal);
-
         lanzarConfetti();
         document.getElementById('top-video').play().catch(() => {});
     };
